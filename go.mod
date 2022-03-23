@@ -1,4 +1,4 @@
-module almatsurat-webrtc
+module golang-webchat
 
 go 1.15
 

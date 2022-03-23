@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	model "almatsurat-webrtc/model"
+	model "golang-webchat/model"
 
 	"github.com/gorilla/websocket"
 )

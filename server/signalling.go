@@ -1,8 +1,8 @@
 package server
 
 import (
-	"almatsurat-webrtc/model"
 	"encoding/json"
+	"golang-webchat/model"
 	"log"
 	"net/http"
 	"strings"

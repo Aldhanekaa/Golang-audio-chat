@@ -1,7 +1,7 @@
 package main
 
 import (
-	"almatsurat-webrtc/server"
+	"golang-webchat/server"
 	"log"
 	"net/http"
 )
