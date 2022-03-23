@@ -1,4 +1,12 @@
-# Building Video Chat Apps using WebRTC and Golang
+# Golang Video Chat with WebRTC
+
+this is a golang! A very simple video chat using WebRTC, with no errors!
+
+---
+
+## Resources and Credits
+
+_this repo was previously taken from https://github.com/junaidrahim/webrtc-session_
 
 Code for the DSC KIIT Workshop "WebRTC + Golang" conducted on 23rd Feb 2021
 
@@ -8,16 +16,16 @@ PPT available [here](https://app.pitch.com/app/presentation/6371a8aa-a4ec-44ea-a
 
 The `client` is written in React and uses [Vite](https://vitejs.dev/) for the dev server. Run the following commands in the `client` directory
 
-* `npm i` to install all the dependencies
-* `npm run dev` to start the local dev server
+- `npm i` to install all the dependencies
+- `npm run dev` to start the local dev server
 
 ### Backend
 
-Written in Go. A simple WebSocket server for signalling implemented using 
+Written in Go. A simple WebSocket server for signalling implemented using
 [gorilla/websocket](https://github.com/gorilla/websocket)
 
-* `go build` to compile and build the binary
-* `./video-chat-app` to run the backend server on `:8000`
+- `go build` to compile and build the binary
+- `./video-chat-app` to run the backend server on `:8000`
 
 <br>
 
