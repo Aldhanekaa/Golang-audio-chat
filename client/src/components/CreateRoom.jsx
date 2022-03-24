@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 
 const CreateRoom = (props) => {
+  const [name, setName] = useState();
+  const nameInputRef = useRef();
+
   const create = async (e) => {
     e.preventDefault();
 
@@ -12,6 +15,16 @@ const CreateRoom = (props) => {
 
   return (
     <div>
+      <input type="text" name="name" ref={nameInputRef} />
+      <button
+        onClick={(e) => {
+          setName(nameInputRef.current.value);
+        }}
+      >
+        Save Name
+      </button>
+
+      <br />
       <button onClick={create}>Create Room</button>
     </div>
   );

@@ -30,6 +30,7 @@ func CreateRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	roomID := AllRooms.CreateRoom(&model.CreateRoomJSON{
 		Id: "",
 	})
@@ -38,7 +39,6 @@ func CreateRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 		RoomID string `json:"room_id"`
 	}
 
-	log.Println(AllRooms.Map)
 	json.NewEncoder(w).Encode(resp{RoomID: roomID})
 }
 
@@ -61,9 +61,10 @@ func broadcaster() {
 		msg := <-broadcast
 		log.Println("MESSAGE ON BROADCASTER: ", msg)
 		log.Println("MESSAGE ON BROADCASTER (ROOM ID): ", msg.RoomID)
-		log.Println("MESSAGE ON BROADCASTER (CLIENT): ", *msg.Client)
+		log.Println("MESSAGE ON BROADCASTER (ADRESS): ", msg.Client.LocalAddr().String())
+		log.Println("MESSAGE ON BROADCASTER (Network): ", msg.Client.LocalAddr().Network())
 
-		for _, client := range AllRooms.Map[msg.RoomID] {
+		for _, client := range AllRooms.Map[msg.RoomID].Participants {
 			// send event to other connected clients in a room
 			if client.Conn != msg.Client {
 				err := client.Conn.WriteJSON(msg.Message)
@@ -88,6 +89,14 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if _, ok := AllRooms.Map[roomID[0]]; !ok {
+		json.NewEncoder(w).Encode(struct {
+			message string `json:"room_id"`
+		}{message: "Room not found"})
+		return
+
+	}
+
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("Web Socket Upgrade Error", err)
@@ -106,7 +115,9 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 
 			if strings.Contains(err.Error(), "websocket: close 1001 (going away)") {
 				log.Println("Hey Im an Error!")
-				ws = nil
+
+				// ws = nil
+				// msg.Client.Close()
 				return
 			}
 

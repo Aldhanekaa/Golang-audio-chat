@@ -42,7 +42,7 @@ const Room = (props) => {
       //   webSocketRef.current.addEventListener('')
 
       webSocketRef.current.addEventListener('message', async (e) => {
-        console.log(e);
+        console.log('on message ', e);
         const message = JSON.parse(e.data);
 
         if (message.join) {
@@ -63,9 +63,14 @@ const Room = (props) => {
         if (message.iceCandidate) {
           console.log('Receiving and Adding ICE Candidate');
           try {
+            console.log('PEER REF: ', peerRef.current);
+
+            // add other peer to current user
             await peerRef.current.addIceCandidate(message.iceCandidate);
           } catch (err) {
+            console.log(peerRef.current);
             console.log('Error Receiving ICE Candidate', err);
+            // alert(err);
           }
         }
       });
@@ -79,14 +84,18 @@ const Room = (props) => {
     await peerRef.current.setRemoteDescription(
       new RTCSessionDescription(offer)
     );
+    console.log('Send Track');
 
     userStream.current.getTracks().forEach((track) => {
+      console.log('track: ', track);
+
       peerRef.current.addTrack(track, userStream.current);
     });
 
     const answer = await peerRef.current.createAnswer();
     await peerRef.current.setLocalDescription(answer);
 
+    console.log('Send Answer');
     webSocketRef.current.send(
       JSON.stringify({ answer: peerRef.current.localDescription })
     );
@@ -97,6 +106,8 @@ const Room = (props) => {
     peerRef.current = createPeer();
 
     userStream.current.getTracks().forEach((track) => {
+      console.log('track: ', track);
+
       peerRef.current.addTrack(track, userStream.current);
     });
   };
@@ -137,6 +148,8 @@ const Room = (props) => {
 
   const handleTrackEvent = (e) => {
     console.log('Received Tracks');
+    console.log('Stream: ', e);
+
     partnerVideo.current.srcObject = e.streams[0];
     console.log(partnerVideo.current.srcObject);
   };
