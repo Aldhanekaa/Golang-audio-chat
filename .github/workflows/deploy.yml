@@ -1,4 +1,4 @@
-name: Build & Deploy WebRTC Tester using Golang
+name: Golang
 
 on:
   push:
@@ -8,7 +8,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy GoLang
+      - name: Deploy
         uses: appleboy/ssh-action@v0.1.2
 
         with:
