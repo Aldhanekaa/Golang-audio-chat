@@ -12,8 +12,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var IdOptions = []string{"d"}
-
 // Participant describes a single entity in the hashmap
 type Participant struct {
 	Host bool
@@ -91,11 +89,6 @@ func (r *RoomMap) CreateRoom(randomise *model.CreateRoomJSON) string {
 	roomID := string(b)
 	r.Map[roomID] = Room{LastUserId: 0}
 	r.InitParticipations(roomID)
-	r.Map[roomID].Participants[1] = Participant{
-		Host: true,
-	}
-
-	log.Println(r.Map[roomID])
 	return roomID
 }
 
