@@ -21,11 +21,6 @@ type Participant struct {
 	Conn *websocket.Conn
 }
 
-// rId (Room Id) | pId (Participant Id)
-func (p *Participant) removeParticipant(rId string, pId string, roomMap *RoomMap) {
-
-}
-
 // room | Participants in the room [participant id] -> Participant
 type Room struct {
 	LastUserId   int
@@ -50,6 +45,19 @@ func (r *RoomMap) InitParticipations(roomId string) {
 		r.Map[roomId] = room
 	}
 
+}
+
+// rId (Room Id) | pId (Participant Id)
+func (r *RoomMap) RemoveParticipant(roomId string, participantId int) {
+	if room, ok := r.Map[roomId]; ok {
+		log.Println("DELETE!!")
+
+		log.Println(r.Map[roomId])
+		delete(room.Participants, participantId)
+		r.Map[roomId] = room
+		log.Println(r.Map[roomId])
+
+	}
 }
 
 // Get will return the array of participants in the room
@@ -92,7 +100,7 @@ func (r *RoomMap) CreateRoom(randomise *model.CreateRoomJSON) string {
 }
 
 // InsertIntoRoom will create a participant and add it in the hashmap
-func (r *RoomMap) InsertIntoRoom(roomID string, host bool, conn *websocket.Conn) {
+func (r *RoomMap) InsertIntoRoom(roomID string, host bool, conn *websocket.Conn) int {
 	r.Mutex.Lock()
 	defer r.Mutex.Unlock()
 
@@ -106,11 +114,10 @@ func (r *RoomMap) InsertIntoRoom(roomID string, host bool, conn *websocket.Conn)
 		r.Map[roomID] = entry
 	}
 
-	log.Println(r.Map[roomID])
-
 	r.Map[roomID].Participants[participantId] = p
 	log.Println(r.Map[roomID])
 
+	return participantId
 }
 
 // DeleteRoom deletes the room with the roomID

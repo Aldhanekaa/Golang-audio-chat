@@ -49,9 +49,10 @@ var upgrader = websocket.Upgrader{
 }
 
 type broadcastMsg struct {
-	Message map[string]interface{}
-	RoomID  string
-	Client  *websocket.Conn
+	Message       map[string]interface{}
+	RoomID        string
+	Client        *websocket.Conn
+	ParticipantId int
 }
 
 var broadcast = make(chan broadcastMsg)
@@ -65,6 +66,11 @@ func broadcaster() {
 		log.Println("MESSAGE ON BROADCASTER (Network): ", msg.Client.LocalAddr().Network())
 
 		for _, client := range AllRooms.Map[msg.RoomID].Participants {
+			if client.Conn == msg.Client && msg.Message["action"] == "leave" {
+				client.Conn.Close()
+				AllRooms.RemoveParticipant(msg.RoomID, msg.ParticipantId)
+
+			}
 			// send event to other connected clients in a room
 			if client.Conn != msg.Client {
 				err := client.Conn.WriteJSON(msg.Message)
@@ -75,6 +81,13 @@ func broadcaster() {
 					client.Conn.Close()
 					// return
 				}
+			}
+
+			// gives participant Id | initial message sent to server
+			if client.Conn == msg.Client && msg.Message["ask"] == true {
+				client.Conn.WriteJSON(map[string]interface{}{
+					"participantId": msg.ParticipantId,
+				})
 			}
 		}
 	}
@@ -102,7 +115,7 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("Web Socket Upgrade Error", err)
 	}
 
-	AllRooms.InsertIntoRoom(roomID[0], false, ws)
+	participantId := AllRooms.InsertIntoRoom(roomID[0], false, ws)
 
 	go broadcaster()
 
@@ -116,8 +129,6 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 			if strings.Contains(err.Error(), "websocket: close 1001 (going away)") {
 				log.Println("Hey Im an Error!")
 
-				// ws = nil
-				// msg.Client.Close()
 				return
 			}
 
@@ -126,6 +137,7 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 
 		msg.Client = ws
 		msg.RoomID = roomID[0]
+		msg.ParticipantId = participantId
 
 		log.Println("msg: ", msg)
 

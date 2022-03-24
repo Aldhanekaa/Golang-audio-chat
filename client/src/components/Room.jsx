@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 const Room = (props) => {
   const userVideo = useRef();
@@ -6,6 +6,7 @@ const Room = (props) => {
   const partnerVideo = useRef();
   const peerRef = useRef();
   const webSocketRef = useRef();
+  const participantId = useRef();
 
   const openCamera = async () => {
     const allDevices = await navigator.mediaDevices.enumerateDevices();
@@ -36,14 +37,36 @@ const Room = (props) => {
         `ws://localhost:8000/join?roomID=${props.match.params.roomID}`
       );
 
+      webSocketRef.current.addEventListener('close', (event) => {
+        webSocketRef.current.send(JSON.stringify({ message: 'woee' }));
+      });
+
+      window.onbeforeunload = function (e) {
+        webSocketRef.current.send(
+          JSON.stringify({
+            action: 'leave',
+            participantId: participantId.current,
+          })
+        );
+      };
+
       webSocketRef.current.addEventListener('open', () => {
-        webSocketRef.current.send(JSON.stringify({ join: true }));
+        webSocketRef.current.send(JSON.stringify({ ask: true }));
+
+        webSocketRef.current.send(
+          JSON.stringify({ join: true, participantId: participantId.current })
+        );
       });
       //   webSocketRef.current.addEventListener('')
 
       webSocketRef.current.addEventListener('message', async (e) => {
         console.log('on message ', e);
         const message = JSON.parse(e.data);
+
+        if (message.participantId) {
+          participantId.current = message.participantId;
+          return;
+        }
 
         if (message.join) {
           callUser();
