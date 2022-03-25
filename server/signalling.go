@@ -59,6 +59,8 @@ var broadcast = make(chan broadcastMsg)
 
 func broadcaster() {
 	for {
+		// var removeParticipant bool
+
 		msg := <-broadcast
 		log.Println("MESSAGE ON BROADCASTER: ", msg)
 		log.Println("MESSAGE ON BROADCASTER (ROOM ID): ", msg.RoomID)
@@ -66,13 +68,21 @@ func broadcaster() {
 		log.Println("MESSAGE ON BROADCASTER (Network): ", msg.Client.LocalAddr().Network())
 
 		for _, client := range AllRooms.Map[msg.RoomID].Participants {
-			if client.Conn == msg.Client && msg.Message["action"] == "leave" {
-				client.Conn.Close()
-				AllRooms.RemoveParticipant(msg.RoomID, msg.ParticipantId)
+
+			log.Println("ASK!")
+
+			// gives participant Id | initial message sent to server
+			if client.Conn == msg.Client && msg.Message["ask"] == true {
+				client.Conn.WriteJSON(map[string]interface{}{
+					"participantId": msg.ParticipantId,
+				})
 
 			}
+			log.Println("OTHER USER")
+
 			// send event to other connected clients in a room
 			if client.Conn != msg.Client {
+				log.Println(msg.Message)
 				err := client.Conn.WriteJSON(msg.Message)
 
 				if err != nil {
@@ -82,14 +92,23 @@ func broadcaster() {
 					// return
 				}
 			}
+			log.Println("LEFT CHAT")
+			log.Println(client, msg)
 
-			// gives participant Id | initial message sent to server
-			if client.Conn == msg.Client && msg.Message["ask"] == true {
-				client.Conn.WriteJSON(map[string]interface{}{
-					"participantId": msg.ParticipantId,
-				})
+			if client.Conn == msg.Client && msg.Message["action"] == "leave" {
+				log.Println("wait")
+
+				client.Conn.Close()
+
+				AllRooms.RemoveParticipant(msg.RoomID, msg.ParticipantId)
+
+				// fmt.Println(AllRooms.Map)
+
+				break
 			}
+
 		}
+
 	}
 }
 
@@ -115,6 +134,8 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 		log.Println("Web Socket Upgrade Error", err)
 	}
 
+	roomId := roomID[0]
+
 	participantId := AllRooms.InsertIntoRoom(roomID[0], false, ws)
 
 	go broadcaster()
@@ -127,7 +148,9 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 			log.Println("Read Error: ", err)
 
 			if strings.Contains(err.Error(), "websocket: close 1001 (going away)") {
-				log.Println("Hey Im an Error!")
+				ws.Close()
+				// log.Println("Hey Im an Error!")
+				RemoveParticipant(roomId, participantId, &AllRooms)
 
 				return
 			}

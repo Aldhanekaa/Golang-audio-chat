@@ -3,6 +3,7 @@ package server
 import (
 	"log"
 	"math/rand"
+	"reflect"
 	"strings"
 	"sync"
 	"time"
@@ -45,17 +46,53 @@ func (r *RoomMap) InitParticipations(roomId string) {
 
 }
 
-// rId (Room Id) | pId (Participant Id)
-func (r *RoomMap) RemoveParticipant(roomId string, participantId int) {
-	if room, ok := r.Map[roomId]; ok {
-		log.Println("DELETE!!")
+var RemoveParticipant = func(roomId string, participantId int, r interface{}) {
+	typeofr := reflect.TypeOf(r).String()
+	log.Println(r)
+	var roomMap *RoomMap
 
-		log.Println(r.Map[roomId])
+	if typeofr == "*server.RoomMap" {
+		roomMap = r.(*RoomMap)
+	} else {
+		roomMap = &AllRooms
+	}
+	log.Println("tee!", roomMap.Map)
+
+	var delRoom bool = false
+	// var rooom Room
+
+	// rooom = Room{}
+
+	// rooom = roomMap.Map[roomId]
+	log.Println("yooo!", roomId, roomMap.Map[roomId])
+
+	room, ok := roomMap.Map[roomId]
+	if ok {
+		log.Println("REMOVE PARTICIPANT!!")
+		log.Println(roomMap.Map[roomId])
+
 		delete(room.Participants, participantId)
-		r.Map[roomId] = room
-		log.Println(r.Map[roomId])
+		log.Println(roomMap.Map[roomId])
+
+		if len(room.Participants) == 0 {
+			delRoom = true
+		}
+
+		roomMap.Map[roomId] = room
+	}
+
+	if delRoom {
+		delete(roomMap.Map, roomId)
 
 	}
+
+}
+
+// rId (Room Id) | pId (Participant Id)
+func (r *RoomMap) RemoveParticipant(roomId string, participantId int) {
+
+	RemoveParticipant(roomId, participantId, r)
+
 }
 
 // Get will return the array of participants in the room

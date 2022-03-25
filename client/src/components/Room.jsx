@@ -6,7 +6,7 @@ const Room = (props) => {
   const partnerVideo = useRef();
   const peerRef = useRef();
   const webSocketRef = useRef();
-  const participantId = useRef();
+  const [participantId, setParticipantId] = useState();
 
   const openCamera = async () => {
     const allDevices = await navigator.mediaDevices.enumerateDevices();
@@ -28,77 +28,92 @@ const Room = (props) => {
   };
 
   useEffect(() => {
-    openCamera().then((stream) => {
-      console.log('stream', stream);
-      userVideo.current.srcObject = stream;
-      userStream.current = stream;
+    if (!userStream.current && !userVideo.current.srcObject) {
+      openCamera().then((stream) => {
+        console.log('stream', stream);
+        userVideo.current.srcObject = stream;
+        userStream.current = stream;
 
-      webSocketRef.current = new WebSocket(
-        `ws://localhost:8000/join?roomID=${props.match.params.roomID}`
-      );
-
-      webSocketRef.current.addEventListener('close', (event) => {
-        webSocketRef.current.send(JSON.stringify({ message: 'woee' }));
-      });
-
-      window.onbeforeunload = function (e) {
-        webSocketRef.current.send(
-          JSON.stringify({
-            action: 'leave',
-            participantId: participantId.current,
-          })
+        webSocketRef.current = new WebSocket(
+          `ws://localhost:8000/join?roomID=${props.match.params.roomID}`
         );
-      };
 
-      webSocketRef.current.addEventListener('open', () => {
-        webSocketRef.current.send(JSON.stringify({ ask: true }));
+        webSocketRef.current.addEventListener('close', (event) => {
+          webSocketRef.current.send(JSON.stringify({ message: 'woee' }));
+        });
 
-        webSocketRef.current.send(
-          JSON.stringify({ join: true, participantId: participantId.current })
-        );
-      });
-      //   webSocketRef.current.addEventListener('')
-
-      webSocketRef.current.addEventListener('message', async (e) => {
-        console.log('on message ', e);
-        const message = JSON.parse(e.data);
-
-        if (message.participantId) {
-          participantId.current = message.participantId;
-          return;
-        }
-
-        if (message.join) {
-          callUser();
-        }
-
-        if (message.offer) {
-          handleOffer(message.offer);
-        }
-
-        if (message.answer) {
-          console.log('Receiving Answer');
-          peerRef.current.setRemoteDescription(
-            new RTCSessionDescription(message.answer)
-          );
-        }
-
-        if (message.iceCandidate) {
-          console.log('Receiving and Adding ICE Candidate');
-          try {
-            console.log('PEER REF: ', peerRef.current);
-
-            // add other peer to current user
-            await peerRef.current.addIceCandidate(message.iceCandidate);
-          } catch (err) {
-            console.log(peerRef.current);
-            console.log('Error Receiving ICE Candidate', err);
-            // alert(err);
+        window.onbeforeunload = function (e) {
+          if (!participantId) {
+            // Cancel the event
+            e.preventDefault(); // If you prevent default behavior in Mozilla Firefox prompt will always be shown
+            // Chrome requires returnValue to be set
+            e.returnValue = '';
+          } else {
+            delete e['returnValue'];
+            webSocketRef.current.send(
+              JSON.stringify({
+                action: 'leave',
+                participantId: participantId.current,
+              })
+            );
           }
-        }
+        };
+
+        webSocketRef.current.addEventListener('open', () => {
+          webSocketRef.current.send(JSON.stringify({ ask: true }));
+        });
+        //   webSocketRef.current.addEventListener('')
+
+        webSocketRef.current.addEventListener('message', async (e) => {
+          console.log('on message ', e);
+          const message = JSON.parse(e.data);
+
+          if (message.participantId) {
+            setParticipantId(message.participantId);
+            return;
+          }
+
+          if (message.join) {
+            callUser();
+          }
+
+          if (message.offer) {
+            handleOffer(message.offer);
+          }
+
+          if (message.answer) {
+            console.log('Receiving Answer');
+            peerRef.current.setRemoteDescription(
+              new RTCSessionDescription(message.answer)
+            );
+          }
+
+          if (message.iceCandidate) {
+            console.log('Receiving and Adding ICE Candidate');
+            try {
+              console.log('PEER REF: ', peerRef.current);
+
+              // add other peer to current user
+              await peerRef.current.addIceCandidate(message.iceCandidate);
+            } catch (err) {
+              console.log(peerRef.current);
+              console.log('Error Receiving ICE Candidate', err);
+              // alert(err);
+            }
+          }
+        });
       });
-    });
+    }
   });
+
+  useEffect(() => {
+    console.log('hey!', participantId);
+    if (participantId) {
+      webSocketRef.current.send(
+        JSON.stringify({ join: true, participantId: participantId.current })
+      );
+    }
+  }, [participantId]);
 
   const handleOffer = async (offer) => {
     console.log('Received Offer, Creating Answer');
@@ -116,7 +131,7 @@ const Room = (props) => {
     });
 
     const answer = await peerRef.current.createAnswer();
-    await peerRef.current.setLocalDescription(answer);
+    await pleerRef.current.setLocalDescription(answer);
 
     console.log('Send Answer');
     webSocketRef.current.send(
