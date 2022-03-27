@@ -34,22 +34,10 @@ const Room = (props) => {
         userVideo.current.srcObject = stream;
         userStream.current = stream;
 
-        webSocketRef.current = new WebSocket(
-          `ws://localhost:8000/join?roomID=${props.match.params.roomID}`
-        );
-
-        webSocketRef.current.addEventListener('close', (event) => {
-          webSocketRef.current.send(JSON.stringify({ message: 'woee' }));
-        });
-
         window.onbeforeunload = function (e) {
-          if (!participantId) {
-            // Cancel the event
-            e.preventDefault(); // If you prevent default behavior in Mozilla Firefox prompt will always be shown
-            // Chrome requires returnValue to be set
-            e.returnValue = '';
-          } else {
-            delete e['returnValue'];
+          e['returnValue'] = '';
+
+          if (webSocketRef.current) {
             webSocketRef.current.send(
               JSON.stringify({
                 action: 'leave',
@@ -59,22 +47,32 @@ const Room = (props) => {
           }
         };
 
+        webSocketRef.current = new WebSocket(
+          `ws://localhost:8000/join?roomID=${props.match.params.roomID}`
+        );
+
+        webSocketRef.current.addEventListener('close', (event) => {
+          webSocketRef.current.send(JSON.stringify({ message: 'woee' }));
+        });
+
         webSocketRef.current.addEventListener('open', () => {
           webSocketRef.current.send(JSON.stringify({ ask: true }));
         });
-        //   webSocketRef.current.addEventListener('')
 
         webSocketRef.current.addEventListener('message', async (e) => {
           console.log('on message ', e);
           const message = JSON.parse(e.data);
 
-          if (message.participantId) {
-            setParticipantId(message.participantId);
+          // when new user join
+          if (message.join && message.participantId) {
+            callUser();
             return;
           }
 
-          if (message.join) {
-            callUser();
+          // get current participantId
+          if (message.participantId) {
+            setParticipantId(message.participantId);
+            return;
           }
 
           if (message.offer) {
@@ -109,11 +107,23 @@ const Room = (props) => {
   useEffect(() => {
     console.log('hey!', participantId);
     if (participantId) {
+      createTracksId();
       webSocketRef.current.send(
-        JSON.stringify({ join: true, participantId: participantId.current })
+        JSON.stringify({
+          join: true,
+          participantId: participantId,
+        })
       );
     }
   }, [participantId]);
+
+  const createTracksId = () => {
+    userStream.current.getTracks().forEach(async (track) => {
+      console.log('track: ', track);
+
+      // peerRef.current.addTrack(track, userStream.current);
+    });
+  };
 
   const handleOffer = async (offer) => {
     console.log('Received Offer, Creating Answer');
@@ -124,14 +134,14 @@ const Room = (props) => {
     );
     console.log('Send Track');
 
-    userStream.current.getTracks().forEach((track) => {
+    userStream.current.getTracks().forEach(async (track) => {
       console.log('track: ', track);
 
       peerRef.current.addTrack(track, userStream.current);
     });
 
     const answer = await peerRef.current.createAnswer();
-    await pleerRef.current.setLocalDescription(answer);
+    await peerRef.current.setLocalDescription(answer);
 
     console.log('Send Answer');
     webSocketRef.current.send(
@@ -159,7 +169,7 @@ const Room = (props) => {
     peer.onnegotiationneeded = handleNegotiationNeeded;
     peer.onicecandidate = handleIceCandidateEvent;
     peer.ontrack = handleTrackEvent;
-
+    console.log('PEER: ', peer);
     return peer;
   };
 

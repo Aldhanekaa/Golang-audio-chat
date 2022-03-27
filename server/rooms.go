@@ -56,7 +56,7 @@ var RemoveParticipant = func(roomId string, participantId int, r interface{}) {
 	} else {
 		roomMap = &AllRooms
 	}
-	log.Println("tee!", roomMap.Map)
+	// log.Println("tee!", roomMap.Map)
 
 	var delRoom bool = false
 	// var rooom Room
@@ -64,7 +64,7 @@ var RemoveParticipant = func(roomId string, participantId int, r interface{}) {
 	// rooom = Room{}
 
 	// rooom = roomMap.Map[roomId]
-	log.Println("yooo!", roomId, roomMap.Map[roomId])
+	// log.Println("yooo!", roomId, roomMap.Map[roomId])
 
 	room, ok := roomMap.Map[roomId]
 	if ok {

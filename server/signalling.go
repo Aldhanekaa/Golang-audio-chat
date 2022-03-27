@@ -55,14 +55,12 @@ type broadcastMsg struct {
 	ParticipantId int
 }
 
-var broadcast = make(chan broadcastMsg)
-
-func broadcaster() {
+func broadcaster(broadcast *chan broadcastMsg) {
 	for {
 		// var removeParticipant bool
 
-		msg := <-broadcast
-		log.Println("MESSAGE ON BROADCASTER: ", msg)
+		msg := <-*broadcast
+		// log.Println("MESSAGE ON BROADCASTER: ", msg)
 		log.Println("MESSAGE ON BROADCASTER (ROOM ID): ", msg.RoomID)
 		log.Println("MESSAGE ON BROADCASTER (ADRESS): ", msg.Client.LocalAddr().String())
 		log.Println("MESSAGE ON BROADCASTER (Network): ", msg.Client.LocalAddr().Network())
@@ -82,26 +80,30 @@ func broadcaster() {
 
 			// send event to other connected clients in a room
 			if client.Conn != msg.Client {
-				log.Println(msg.Message)
+				// log.Println(msg.Message)
 				err := client.Conn.WriteJSON(msg.Message)
 
 				if err != nil {
 					log.Println("Broadcast MSG ERROR: ", err)
 					log.Println(AllRooms.Map[msg.RoomID])
 					client.Conn.Close()
-					// return
+					return
 				}
 			}
 			log.Println("LEFT CHAT")
-			log.Println(client, msg)
+			// log.Println(client, msg)
 
 			if client.Conn == msg.Client && msg.Message["action"] == "leave" {
-				log.Println("wait")
+				// log.Println("wait")
 
-				client.Conn.Close()
+				err := client.Conn.Close()
 
-				AllRooms.RemoveParticipant(msg.RoomID, msg.ParticipantId)
+				if err != nil {
+					log.Println("Error Closing WS", err.Error())
+				} else {
+					AllRooms.RemoveParticipant(msg.RoomID, msg.ParticipantId)
 
+				}
 				// fmt.Println(AllRooms.Map)
 
 				break
@@ -137,22 +139,25 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 	roomId := roomID[0]
 
 	participantId := AllRooms.InsertIntoRoom(roomID[0], false, ws)
+	var broadcast = make(chan broadcastMsg)
 
-	go broadcaster()
+	go broadcaster(&broadcast)
 
 	for {
+		log.Println("Participant with Id: ", participantId, " Broadcast a message")
+
 		var msg broadcastMsg
 
 		err := ws.ReadJSON(&msg.Message)
 		if err != nil {
 			log.Println("Read Error: ", err)
 
-			if strings.Contains(err.Error(), "websocket: close 1001 (going away)") {
-				ws.Close()
+			if strings.Contains(err.Error(), "websocket: close 1001") {
+				log.Println("ERROR TAU ", err)
 				// log.Println("Hey Im an Error!")
 				RemoveParticipant(roomId, participantId, &AllRooms)
+				ws.Close()
 
-				return
 			}
 
 			return
@@ -162,7 +167,7 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 		msg.RoomID = roomID[0]
 		msg.ParticipantId = participantId
 
-		log.Println("msg: ", msg)
+		// log.Println("msg: ", msg)
 
 		broadcast <- msg
 	}
