@@ -27,7 +27,7 @@ jobs:
             export NVM_DIR=~/.nvm
             source ~/.nvm/nvm.sh    
 
-            # export $PATH=$PATH:/usr/local/go/bin/go
+            PATH="/usr/local/go/bin/:$PATH"
 
             # export GO_DIR=/usr/local/go
             # source /usr/local/go/bin/go
@@ -36,6 +36,8 @@ jobs:
 
             echo $GOPATH
             echo $GOBIN
+
+            go
 
             /usr/local/go/bin/go env
 
