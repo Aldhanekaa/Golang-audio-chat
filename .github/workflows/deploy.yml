@@ -43,8 +43,10 @@ jobs:
             cd go
             cd deploying
 
-            # echo "Cloning Git Repo to /root/deploying"
-            # git clone https://aldhanekaa:${{secrets.GITHUB_TOKEN}}@github.com/aldhanekaa/Golang-audio-chat.git
+            echo "Cloning Git Repo to /root/deploying"
+            git clone https://aldhanekaa:${{secrets.GITHUB_TOKEN}}@github.com/aldhanekaa/Golang-audio-chat.git
 
-      - name: Build app
-        run: ls
+            cd Golang-audio-chat
+            chmod +x deploy.sh
+
+            ./deploy.sh
