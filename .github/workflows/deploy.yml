@@ -7,6 +7,11 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Set up Go 1.13
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.18
+
       - name: Deploy
         uses: appleboy/ssh-action@v0.1.2
 
@@ -29,26 +34,16 @@ jobs:
             echo "Cloning Git Repo to /root/deploying"
             git clone https://aldhanekaa:${{secrets.GITHUB_TOKEN}}@github.com/aldhanekaa/Golang-audio-chat.git
 
-            echo "Building Golang source"
-            cd Golang-audio-chat
-            go build
+      - name: SCP to Ocean
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{secrets.SSH_HOST}} # IP address of the server you wish to ssh into
+          key: ${{secrets.SSH_KEY}} # Private or public key of the server
+          username: ${{ secrets.SSH_USERNAME }} # User of the server you want to ssh into
 
-            echo "Moving Builded Golang Source to /root/go/Golang-audio-chat"
-            rm -rf /root/go/Golang-audio-chat
-            mv /root/go/deploying/Golang-audio-chat /root/go/Golang-audio-chat
+          port: 22
+          source: 'app'
+          target: '/root/deploying/Golang-audio-chat'
 
-            cd client
-            npm i
-            npm run build
-
-            echo "Moving FrontEnd to /var/www/golang-webchat.sg.aldhaneka.me"
-            rm -rf /var/www/golang-webchat.sg.aldhaneka.me
-            mv dist /var/www/golang-webchat.sg.aldhaneka.me
-
-            cd ..
-            rm -rf client
-
-            sudo systemctl stop golang-webchat.service
-            sudo systemctl start golang-webchat.service
-
-            sudo service nginx reload
+      - name: Build app
+        run: go build
