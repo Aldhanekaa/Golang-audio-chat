@@ -23,11 +23,15 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }} # User of the server you want to ssh into
 
           script: |
+
             export NVM_DIR=~/.nvm
             source ~/.nvm/nvm.sh    
 
             export GO_DIR=/usr/local/go
             # source /usr/local/go/bin/go
+
+            echo $PATH
+
 
             cd /root
             cd go
@@ -37,6 +41,7 @@ jobs:
             git clone https://aldhanekaa:${{secrets.GITHUB_TOKEN}}@github.com/aldhanekaa/Golang-audio-chat.git
 
             cd Golang-audio-chat
-            chmod +x ./deploy.sh
 
-            ./deploy.sh
+            # chmod +x ./deploy.sh
+
+            # ./deploy.sh
