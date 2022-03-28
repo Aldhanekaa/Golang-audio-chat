@@ -32,6 +32,9 @@ jobs:
 
             echo $PATH
 
+            echo $GOPATH
+            echo $GOBIN
+
 
             cd /root
             cd go
