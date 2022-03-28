@@ -48,7 +48,11 @@ const Room = (props) => {
         };
 
         webSocketRef.current = new WebSocket(
-          `ws://localhost:8000/join?roomID=${props.match.params.roomID}`
+          `${
+            import.meta.env.PROD
+              ? 'wss://golang-webchat-server.sg.aldhaneka.me'
+              : 'ws://localhost:8000'
+          }/join?roomID=${props.match.params.roomID}`
         );
 
         webSocketRef.current.addEventListener('close', (event) => {
