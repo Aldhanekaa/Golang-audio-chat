@@ -7,7 +7,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go 1.13
+      - name: Set up Go 1.18
         uses: actions/setup-go@v1
         with:
           go-version: 1.18
@@ -24,16 +24,4 @@ jobs:
             export NVM_DIR=~/.nvm
             source ~/.nvm/nvm.sh    
 
-            export GO_DIR=/usr/local/go
-            source /usr/local/go/bin/go
-
-            cd /root
-            cd go
-            cd deploying
-
-            echo "Cloning Git Repo to /root/deploying"
-            git clone https://aldhanekaa:${{secrets.GITHUB_TOKEN}}@github.com/aldhanekaa/Golang-audio-chat.git
-
-            echo "Building Golang source"
-            cd Golang-audio-chat
-            go build
+            /usr/local/go/bin/go
