@@ -17,4 +17,6 @@ jobs:
 
           script: |
             echo "he"
+            cd /root
+            cd go
             ls
