@@ -16,6 +16,12 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }} # User of the server you want to ssh into
 
           script: |
+            export NVM_DIR=~/.nvm
+            source ~/.nvm/nvm.sh    
+
+            export GO_DIR=/usr/local/go
+            source /usr/local/go/bin/go
+
             cd /root
             cd go
             cd deploying
