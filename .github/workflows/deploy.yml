@@ -20,8 +20,10 @@ jobs:
 
           host: ${{secrets.SSH_HOST}} # IP address of the server you wish to ssh into
 
+          port: 22
+          rm: true
           source: 'app/*'
-          target: '/root/go/deploying/Golang-audio-chat'
+          target: '/root/go/'
 
       - name: Build app
         run: go build
