@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set up Go 1.13
+      - name: Set up Go 1.18
         uses: actions/setup-go@v1
         with:
           go-version: 1.18
@@ -37,6 +37,6 @@ jobs:
             git clone https://aldhanekaa:${{secrets.GITHUB_TOKEN}}@github.com/aldhanekaa/Golang-audio-chat.git
 
             cd Golang-audio-chat
-            chmod +x deploy.sh
+            chmod +x ./deploy.sh
 
             ./deploy.sh
