@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "serve": "vite preview"
+    "serve": "vite preview --port 8000"
   },
   "dependencies": {
     "react": "^17.0.0",

@@ -1,6 +1,8 @@
 import React, { useRef, useState } from 'react';
 
 const CreateRoom = (props) => {
+  // console.log(process.env);
+
   const [name, setName] = useState();
   const nameInputRef = useRef();
 
@@ -12,6 +14,7 @@ const CreateRoom = (props) => {
 
     props.history.push(`/room/${room_id}`);
   };
+  console.log(import.meta.env);
 
   return (
     <div>
