@@ -22,8 +22,8 @@ jobs:
 
           port: 22
           rm: true
-          source: 'app/*'
-          target: '/root/go/'
+          source: '/root/go/tests/*'
+          target: '/root/go/deploying/Golang-audio-chat'
 
       - name: Build app
         run: go build
