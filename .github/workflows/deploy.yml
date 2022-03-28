@@ -16,7 +16,33 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }} # User of the server you want to ssh into
 
           script: |
-            echo "he"
             cd /root
             cd go
-            ls
+            cd deploying
+
+            echo "Cloning Git Repo to /root/deploying"
+            git clone https://aldhanekaa:${{secrets.GITHUB_TOKEN}}@github.com/aldhanekaa/Golang-audio-chat.git
+
+            echo "Building Golang source"
+            cd Golang-audio-chat
+            go build
+
+            echo "Moving Builded Golang Source to /root/go/Golang-audio-chat"
+            rm -rf /root/go/Golang-audio-chat
+            mv /root/go/deploying/Golang-audio-chat /root/go/Golang-audio-chat
+
+            cd client
+            npm i
+            npm run build
+
+            echo "Moving FrontEnd to /var/www/golang-webchat.sg.aldhaneka.me"
+            rm -rf /var/www/golang-webchat.sg.aldhaneka.me
+            mv dist /var/www/golang-webchat.sg.aldhaneka.me
+
+            cd ..
+            rm -rf client
+
+            sudo systemctl stop golang-webchat.service
+            sudo systemctl start golang-webchat.service
+
+            sudo service nginx reload
