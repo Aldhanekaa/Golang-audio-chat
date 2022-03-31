@@ -34,19 +34,6 @@ const Room = (props) => {
         userVideo.current.srcObject = stream;
         userStream.current = stream;
 
-        window.onbeforeunload = function (e) {
-          e['returnValue'] = '';
-
-          if (webSocketRef.current) {
-            webSocketRef.current.send(
-              JSON.stringify({
-                action: 'leave',
-                participantId: participantId.current,
-              })
-            );
-          }
-        };
-
         webSocketRef.current = new WebSocket(
           `${
             import.meta.env.PROD
@@ -54,6 +41,11 @@ const Room = (props) => {
               : 'ws://localhost:8000'
           }/join?roomID=${props.match.params.roomID}`
         );
+
+        webSocketRef.current.addEventListener('close', (event) => {
+          console.log('CLOSE! ', event);
+          webSocketRef.current.send(JSON.stringify({ message: 'woee' }));
+        });
 
         webSocketRef.current.addEventListener('open', () => {
           webSocketRef.current.send(JSON.stringify({ ask: true }));
