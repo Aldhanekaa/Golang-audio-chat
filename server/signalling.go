@@ -12,6 +12,7 @@ import (
 
 // AllRooms is the global hashmap for the server
 var AllRooms RoomMap
+var broadcast = make(chan broadcastMsg)
 
 // CreateRoomRequestHandler Create a Room and return roomID
 
@@ -116,6 +117,8 @@ func broadcaster(broadcast *chan broadcastMsg) {
 
 // JoinRoomRequestHandler will join the client in a particular room
 func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Web Socket Upgrade Error")
+
 	roomID, ok := r.URL.Query()["roomID"]
 
 	if !ok {
@@ -139,7 +142,6 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 	roomId := roomID[0]
 
 	participantId := AllRooms.InsertIntoRoom(roomID[0], false, ws)
-	var broadcast = make(chan broadcastMsg)
 
 	go broadcaster(&broadcast)
 
