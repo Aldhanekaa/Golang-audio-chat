@@ -119,6 +119,7 @@ func broadcaster(broadcast *chan broadcastMsg) {
 
 // JoinRoomRequestHandler will join the client in a particular room
 func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
+
 	log.Println("Web Socket Upgrade Error")
 
 	roomID, ok := r.URL.Query()["roomID"]
@@ -137,6 +138,10 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ws, err := upgrader.Upgrade(w, r, nil)
+	defer func() {
+		ws.Close()
+	}()
+
 	if err != nil {
 		log.Println("Web Socket Upgrade Error", err)
 	}
@@ -159,10 +164,10 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 			if strings.Contains(err.Error(), "websocket: close 1001") {
 				log.Println("ERROR TAU ", err)
 				// log.Println("Hey Im an Error!")
-				RemoveParticipant(roomId, participantId, &AllRooms)
-				ws.Close()
 
 			}
+			RemoveParticipant(roomId, participantId, &AllRooms)
+			ws.Close()
 
 			break
 
