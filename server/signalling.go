@@ -160,6 +160,8 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 
 			}
 
+			break
+
 		}
 
 		msg.Client = ws

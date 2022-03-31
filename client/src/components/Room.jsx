@@ -55,10 +55,6 @@ const Room = (props) => {
           }/join?roomID=${props.match.params.roomID}`
         );
 
-        webSocketRef.current.addEventListener('close', (event) => {
-          webSocketRef.current.send(JSON.stringify({ message: 'woee' }));
-        });
-
         webSocketRef.current.addEventListener('open', () => {
           webSocketRef.current.send(JSON.stringify({ ask: true }));
         });
