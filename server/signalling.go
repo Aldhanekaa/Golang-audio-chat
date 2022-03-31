@@ -5,7 +5,6 @@ import (
 	"golang-webchat/model"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/websocket"
 )
@@ -161,15 +160,13 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("Read Error: ", err)
 
-			if strings.Contains(err.Error(), "websocket: close 1001") {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Println("ERROR TAU ", err)
-				// log.Println("Hey Im an Error!")
 
+				RemoveParticipant(roomId, participantId, &AllRooms)
+				ws.Close()
+				break
 			}
-			RemoveParticipant(roomId, participantId, &AllRooms)
-			ws.Close()
-
-			break
 
 		}
 
