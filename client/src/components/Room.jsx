@@ -158,7 +158,13 @@ const Room = (props) => {
   const createPeer = () => {
     console.log('Creating Peer Connection');
     const peer = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      iceServers: [
+        {
+          urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+          username: 'openrelayproject',
+          credential: 'openrelayproject',
+        },
+      ],
     });
 
     peer.onnegotiationneeded = handleNegotiationNeeded;
