@@ -119,7 +119,10 @@ const Room = (props) => {
 
   const handleOffer = async (offer) => {
     console.log('Received Offer, Creating Answer');
-    peerRef.current = createPeer();
+
+    if (!peerRef.current) {
+      peerRef.current = createPeer();
+    }
 
     await peerRef.current.setRemoteDescription(
       new RTCSessionDescription(offer)
@@ -161,6 +164,7 @@ const Room = (props) => {
     peer.onnegotiationneeded = handleNegotiationNeeded;
     peer.onicecandidate = handleIceCandidateEvent;
     peer.ontrack = handleTrackEvent;
+    // peer.onsignalingstatechange
     console.log('PEER: ', peer);
     return peer;
   };
