@@ -46,8 +46,6 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
 }
 
 type broadcastMsg struct {
@@ -62,7 +60,7 @@ func broadcaster(broadcast *chan broadcastMsg) {
 		// var removeParticipant bool
 
 		msg := <-*broadcast
-		log.Println("MESSAGE ON BROADCASTER: ", msg)
+		// log.Println("MESSAGE ON BROADCASTER: ", msg)
 		log.Println("MESSAGE ON BROADCASTER (ROOM ID): ", msg.RoomID)
 		log.Println("MESSAGE ON BROADCASTER (ADRESS): ", msg.Client.LocalAddr().String())
 		log.Println("MESSAGE ON BROADCASTER (Network): ", msg.Client.LocalAddr().Network())
@@ -118,9 +116,6 @@ func broadcaster(broadcast *chan broadcastMsg) {
 
 // JoinRoomRequestHandler will join the client in a particular room
 func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
-
-	log.Println("Web Socket Upgrade Error")
-
 	roomID, ok := r.URL.Query()["roomID"]
 
 	if !ok {
@@ -137,10 +132,6 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ws, err := upgrader.Upgrade(w, r, nil)
-	defer func() {
-		ws.Close()
-	}()
-
 	if err != nil {
 		log.Println("Web Socket Upgrade Error", err)
 	}
@@ -148,8 +139,8 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 	roomId := roomID[0]
 
 	participantId := AllRooms.InsertIntoRoom(roomID[0], false, ws)
-
 	var broadcast = make(chan broadcastMsg)
+
 	go broadcaster(&broadcast)
 
 	for {
@@ -161,14 +152,15 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("Read Error: ", err)
 
-			if strings.Contains(err.Error(), "close 1001") || strings.Contains(err.Error(), "close 1006") || strings.Contains(err.Error(), "close 1005") {
+			if strings.Contains(err.Error(), "websocket: close 1001") || strings.Contains(err.Error(), "websocket: close 1005") || strings.Contains(err.Error(), "websocket: close 1006") {
 				log.Println("ERROR TAU ", err)
-
+				// log.Println("Hey Im an Error!")
 				RemoveParticipant(roomId, participantId, &AllRooms)
 				ws.Close()
-				break
+
 			}
 
+			return
 		}
 
 		msg.Client = ws
