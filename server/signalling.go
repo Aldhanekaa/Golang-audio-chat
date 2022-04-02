@@ -62,7 +62,7 @@ func broadcaster(broadcast *chan broadcastMsg) {
 		// var removeParticipant bool
 
 		msg := <-*broadcast
-		// log.Println("MESSAGE ON BROADCASTER: ", msg)
+		log.Println("MESSAGE ON BROADCASTER: ", msg)
 		log.Println("MESSAGE ON BROADCASTER (ROOM ID): ", msg.RoomID)
 		log.Println("MESSAGE ON BROADCASTER (ADRESS): ", msg.Client.LocalAddr().String())
 		log.Println("MESSAGE ON BROADCASTER (Network): ", msg.Client.LocalAddr().Network())
