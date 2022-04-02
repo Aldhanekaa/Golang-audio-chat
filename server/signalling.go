@@ -161,7 +161,7 @@ func JoinRoomRequestHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("Read Error: ", err)
 
-			if strings.Contains(err.Error(), "close 1001") || strings.Contains(err.Error(), "close 1006") {
+			if strings.Contains(err.Error(), "close 1001") || strings.Contains(err.Error(), "close 1006") || strings.Contains(err.Error(), "close 1005") {
 				log.Println("ERROR TAU ", err)
 
 				RemoveParticipant(roomId, participantId, &AllRooms)
